@@ -1,0 +1,67 @@
+---Get a look at the data
+
+SELECT TOP 10 *
+FROM dbo.dog_breeds;
+
+---Change longevity_yrs column to integer to perform agg functions. Same done for height.
+
+ALTER TABLE dbo.dog_breeds
+ALTER COLUMN Longevity_yrs INTEGER;
+
+---Check for duplicates
+
+SELECT Breed, COUNT(Breed)
+FROM dbo.dog_breeds
+GROUP BY Breed
+HAVING COUNT(Breed) > 1;
+
+
+---Get a look at average height and lifespan for whole table
+
+SELECT AVG(Height_in) AS avgheight, AVG(Longevity_yrs) AS avglifespan
+FROM dbo.dog_breeds;
+
+
+---Show average life span for each country of orgin. Ordered by highest to lowest lifespan.
+
+SELECT AVG(Longevity_yrs) AS avg_lifespan, Country_of_Origin
+FROM dbo.dog_breeds
+GROUP BY Country_of_Origin
+ORDER BY avg_lifespan DESC;
+
+---Show average height for each country of orgin. Ordered by largest to smallest height.
+
+SELECT AVG(Height_in) AS avg_height, Country_of_Origin
+FROM dbo.dog_breeds
+GROUP BY Country_of_Origin 
+ORDER BY avg_height DESC;
+
+---Show only countries with dogs height greater than average.
+
+SELECT AVG(Height_in) AS avg_height, Country_of_Origin
+FROM dbo.dog_breeds
+GROUP BY Country_of_Origin 
+HAVING AVG(Height_in) > (SELECT AVG(Height_in) FROM dbo.dog_breeds)
+ORDER BY avg_height DESC;
+
+---Show only orgin countries with dogs with shorter lifespans than average
+
+SELECT AVG(Longevity_yrs) AS avg_lifespan, Country_of_Origin
+FROM dbo.dog_breeds
+GROUP BY Country_of_Origin 
+HAVING AVG(Longevity_yrs) < (SELECT AVG(Longevity_yrs) FROM dbo.dog_breeds)
+ORDER BY avg_lifespan DESC;
+
+---Show dogs with lifespan longer than average and height taller than average. This shows positive outliers as there is negative correlation between height and lifespan.
+
+SELECT Breed, Longevity_yrs, Height_in
+FROM dbo.dog_breeds
+WHERE Longevity_yrs > 13 AND Height_in > 17;
+
+---show dogs who are shorter than average and have shorter lifespans than average. Creates new column for negative outlier and shows the common health problems for each breed.
+
+SELECT Breed, Longevity_yrs, Height_in, Common_Health_Problems,
+CASE WHEN Longevity_yrs < 13 AND Height_in < 17 THEN 'YES' ELSE 'NO' END AS negative_outlier
+FROM dbo.dog_breeds
+WHERE Longevity_yrs < 13 AND Height_in < 17
+ORDER BY Height_in DESC;
